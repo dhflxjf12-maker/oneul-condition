@@ -15,7 +15,7 @@ export type GenerateDeps = {
   /** AI 호출 함수. 없으면(키 미설정 등) 항상 기본 문구. */
   callModel: ModelCaller | null;
   /** 한도 안이면 true (횟수를 함께 올린다) */
-  tryConsume: () => boolean;
+  tryConsume: () => boolean | Promise<boolean>;
   timeoutMs?: number;
 };
 
@@ -53,7 +53,7 @@ export async function generateSuggestion(request: SuggestionRequest, deps: Gener
   if (decided.restLocked || !deps.callModel) return fallback();
 
   // 한도 확인
-  if (!deps.tryConsume()) return fallback();
+  if (!(await deps.tryConsume())) return fallback();
 
   const controller = new AbortController();
   const timeoutMs = deps.timeoutMs ?? AI_SERVER_TIMEOUT_MS;
