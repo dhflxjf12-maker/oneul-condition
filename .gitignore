@@ -45,3 +45,7 @@ next-env.d.ts
 
 # 설치 파일 보관 폴더
 /_downloads/
+
+# 도구 실행 기록(bkit)과 R 작업 기록
+/.bkit/
+/.Rhistory
