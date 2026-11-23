@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { getBrowserStorage, loadDraft, loadLevel, saveDraft, saveLevel } from "@/lib/checkin-storage";
 import {
   CHECKIN_ITEM_LABELS,
   LEVEL_LABELS,
@@ -83,6 +84,33 @@ export function CheckinForm({ onComplete }: CheckinFormProps) {
   const [sorenessMode, setSorenessMode] = useState<SorenessMode>("none");
   const [soreness, setSoreness] = useState<Soreness>(createEmptySoreness);
   const [missing, setMissing] = useState<RequiredKey[]>([]);
+  // 브라우저에 보관된 값을 불러오기 전에는 저장하지 않는다. (빈 값으로 덮어쓰는 것을 막음)
+  const [restored, setRestored] = useState(false);
+
+  // Design Ref: §2.2 — 화면이 열리면 오늘 보관된 입력값과 마지막 운동 수준을 불러온다.
+  // 서버에서 먼저 그려진 화면과 어긋나지 않도록 마운트 뒤에 불러온다.
+  useEffect(() => {
+    const storage = getBrowserStorage();
+    const savedLevel = loadLevel(storage);
+    const savedDraft = loadDraft(storage);
+    /* eslint-disable react-hooks/set-state-in-effect -- 브라우저 저장소는 마운트 뒤에만 읽을 수 있다 */
+    if (savedLevel) setLevel(savedLevel);
+    if (savedDraft) {
+      setDraft(savedDraft.items);
+      setSorenessMode(savedDraft.sorenessMode);
+      setSoreness(savedDraft.soreness);
+    }
+    setRestored(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  // 입력이 바뀔 때마다 보관한다.
+  useEffect(() => {
+    if (!restored) return;
+    const storage = getBrowserStorage();
+    saveDraft(storage, { items: draft, sorenessMode, soreness });
+    saveLevel(storage, level);
+  }, [restored, draft, sorenessMode, soreness, level]);
 
   // 근육통은 처음부터 "없음"으로 완료 상태라서 진행은 1/6에서 시작한다.
   const doneCount = REQUIRED_ITEM_KEYS.filter((key) => draft[key] !== undefined).length + 1;
