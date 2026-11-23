@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { INTENSITY_LABELS, LEVEL_LABELS, SORENESS_PART_LABELS } from "@/lib/domain/constants";
+import { LEVEL_LABELS } from "@/lib/domain/constants";
 import { decideIntensity } from "@/lib/domain/intensity";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { CheckinForm, type CheckinResult } from "./CheckinForm";
+import { SafetyNotice } from "./SafetyNotice";
+import { ScoreCard } from "./ScoreCard";
 
 // Design Ref: §5.1 — "/" 한 화면 안에서 체크인 → 결과로 단계가 바뀐다.
-// 이 파일의 결과 부분은 작업 8번(점수 화면)이 오기 전까지 쓰는 임시 표시다.
+// 결과 화면: 점수 카드 → (제안 카드: 작업 9~10번) → 안전 안내문 → 입력 고치기.
 
-/** 체크인 화면. 입력을 마치면 (임시) 결과를 보여 주고, 입력 폼은 값을 잃지 않게 화면에서만 숨긴다. */
+/** 체크인 화면. 입력을 마치면 결과를 보여 주고, 입력 폼은 값을 잃지 않게 화면에서만 숨긴다. */
 export function CheckinScreen() {
   const [result, setResult] = useState<CheckinResult | null>(null);
 
@@ -29,27 +31,19 @@ export function CheckinScreen() {
 
       {result && decided ? (
         <>
-          <Card aria-labelledby="temp-result">
-            <h2 id="temp-result" className="text-lg font-bold">
-              입력을 마쳤어요 (임시 결과)
+          <ScoreCard result={decided} />
+
+          <Card aria-labelledby="suggestion-heading">
+            <h2 id="suggestion-heading" className="text-lg font-bold">
+              오늘의 제안
             </h2>
-            <p className="mt-2 text-2xl font-bold">
-              {decided.score}점 · {INTENSITY_LABELS[decided.intensity]}
+            <p className="mt-2 text-ink-sub">
+              운동 수준: {LEVEL_LABELS[result.level]}. 구체적인 운동 제안은 다음 작업(9~10번)에서 만들어져요.
             </p>
-            <ul className="mt-3 flex flex-col gap-1 text-ink-sub">
-              <li>운동 수준: {LEVEL_LABELS[result.level]}</li>
-              <li>
-                쉬어야 할 부위:{" "}
-                {decided.restParts.length > 0
-                  ? decided.restParts.map((part) => SORENESS_PART_LABELS[part]).join("·")
-                  : "없음"}
-              </li>
-              {decided.restRecommended ? <li>점수가 40 미만이라 휴식을 권해요.</li> : null}
-              {decided.restLocked ? <li>근육통 6부위가 모두 4점 이상이라 휴식으로 정했어요.</li> : null}
-              {decided.cappedByRule ? <li>수면·근육통 때문에 강도를 &quot;보통&quot;까지로 낮췄어요.</li> : null}
-            </ul>
-            <p className="mt-3 text-ink-sub">점수 화면과 운동 제안은 다음 작업(8~10번)에서 제대로 만들어져요.</p>
           </Card>
+
+          <SafetyNotice />
+
           <Card>
             <Button variant="secondary" className="w-full" onClick={() => setResult(null)}>
               입력 고치기
