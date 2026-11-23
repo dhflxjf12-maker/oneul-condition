@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { LEVEL_LABELS } from "@/lib/domain/constants";
+import { useMemo, useState } from "react";
 import { decideIntensity } from "@/lib/domain/intensity";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { CheckinForm, type CheckinResult } from "./CheckinForm";
 import { SafetyNotice } from "./SafetyNotice";
+import { SuggestionCard } from "./SuggestionCard";
 import { ScoreCard } from "./ScoreCard";
 
 // Design Ref: §5.1 — "/" 한 화면 안에서 체크인 → 결과로 단계가 바뀐다.
-// 결과 화면: 점수 카드 → (제안 카드: 작업 9~10번) → 안전 안내문 → 입력 고치기.
+// 결과 화면: 점수 카드 → 제안 카드 → 안전 안내문 → 입력 고치기.
 
 /** 체크인 화면. 입력을 마치면 결과를 보여 주고, 입력 폼은 값을 잃지 않게 화면에서만 숨긴다. */
 export function CheckinScreen() {
@@ -21,7 +21,8 @@ export function CheckinScreen() {
     window.scrollTo({ top: 0 });
   }
 
-  const decided = result ? decideIntensity(result.input) : null;
+  // 같은 결과로는 다시 계산하지 않는다. (제안 카드가 화면이 다시 그려질 때마다 서버를 부르지 않게)
+  const decided = useMemo(() => (result ? decideIntensity(result.input) : null), [result]);
 
   return (
     <>
@@ -33,14 +34,7 @@ export function CheckinScreen() {
         <>
           <ScoreCard result={decided} />
 
-          <Card aria-labelledby="suggestion-heading">
-            <h2 id="suggestion-heading" className="text-lg font-bold">
-              오늘의 제안
-            </h2>
-            <p className="mt-2 text-ink-sub">
-              운동 수준: {LEVEL_LABELS[result.level]}. 구체적인 운동 제안은 다음 작업(9~10번)에서 만들어져요.
-            </p>
-          </Card>
+          <SuggestionCard level={result.level} input={result.input} decided={decided} />
 
           <SafetyNotice />
 
