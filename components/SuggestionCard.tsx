@@ -19,6 +19,8 @@ type SuggestionCardProps = {
   input: CheckinInput;
   /** 점수·강도 계산 결과 (이 강도는 제안이 바꾸지 못한다) */
   decided: IntensityResult;
+  /** 제안이 정해지면(AI 제안 또는 기본 문구) 한 번 알려 준다. 기록 저장이 이 값을 쓴다. */
+  onResolved?: (source: SuggestionSource, suggestion: Suggestion) => void;
 };
 
 type State = { status: "loading" } | { status: "done"; source: SuggestionSource; suggestion: Suggestion };
@@ -29,7 +31,7 @@ function partNames(parts: readonly (keyof typeof SORENESS_PART_LABELS | "whole")
 }
 
 /** 운동 제안 카드. 점수 확인 직후 /api/suggestion을 부르고, 5초가 지나거나 실패하면 기본 문구로 바꾼다. */
-export function SuggestionCard({ level, input, decided }: SuggestionCardProps) {
+export function SuggestionCard({ level, input, decided, onResolved }: SuggestionCardProps) {
   // 근육통 6부위가 모두 높아 휴식으로 고정이면 서버를 부르지 않고 바로 기본 안내를 보여 준다.
   const [state, setState] = useState<State>(() =>
     decided.restLocked
@@ -38,7 +40,10 @@ export function SuggestionCard({ level, input, decided }: SuggestionCardProps) {
   );
 
   useEffect(() => {
-    if (decided.restLocked) return;
+    if (decided.restLocked) {
+      onResolved?.("fallback", getFallbackSuggestion(level, decided.intensity, decided.restParts));
+      return;
+    }
 
     const controller = new AbortController();
     let finished = false;
@@ -49,6 +54,7 @@ export function SuggestionCard({ level, input, decided }: SuggestionCardProps) {
       finished = true;
       clearTimeout(timer);
       setState({ status: "done", source, suggestion });
+      onResolved?.(source, suggestion);
     }
     function applyFallback() {
       finish("fallback", getFallbackSuggestion(level, decided.intensity, decided.restParts));
@@ -80,6 +86,8 @@ export function SuggestionCard({ level, input, decided }: SuggestionCardProps) {
       clearTimeout(timer);
       controller.abort();
     };
+    // onResolved는 부모가 다시 그려질 때마다 바뀔 수 있어 의존성에서 뺀다. (제안은 결과마다 한 번만 정해진다)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, input, decided]);
 
   return (
