@@ -27,10 +27,14 @@ type RecordSaverProps = {
   input: CheckinInput;
   /** 제안이 정해지면 채워진다 (아직이면 null) */
   resolved: Resolved | null;
+  /** 제안까지 저장이 끝나면 기록 날짜와 함께 알려 준다. 👍/👎는 이때부터 누를 수 있다. */
+  onSaved?: (checkinDate: string) => void;
+  /** 다시 저장을 시작할 때 알려 준다. (저장이 새로 이루어지면 이전 평가는 지워지므로 평가 카드를 숨긴다) */
+  onRetry?: () => void;
 };
 
 /** 기록 저장 상태 카드 */
-export function RecordSaver({ loggedIn, level, input, resolved }: RecordSaverProps) {
+export function RecordSaver({ loggedIn, level, input, resolved, onSaved, onRetry }: RecordSaverProps) {
   const [phase, setPhase] = useState<Phase>({ name: "saving" });
   // 다시 저장을 누를 때마다 올라가서, 아래 저장 순서를 처음부터 다시 돌린다.
   const [attempt, setAttempt] = useState(0);
@@ -58,7 +62,13 @@ export function RecordSaver({ loggedIn, level, input, resolved }: RecordSaverPro
     let cancelled = false;
     saveSuggestion({ checkinDate: phase.checkinDate, source: resolved.source, suggestion: resolved.suggestion })
       .then((result) => {
-        if (!cancelled) setPhase(result.ok ? { name: "saved" } : { name: "failed" });
+        if (cancelled) return;
+        if (result.ok) {
+          setPhase({ name: "saved" });
+          onSaved?.(phase.checkinDate);
+        } else {
+          setPhase({ name: "failed" });
+        }
       })
       .catch(() => {
         if (!cancelled) setPhase({ name: "failed" });
@@ -66,9 +76,12 @@ export function RecordSaver({ loggedIn, level, input, resolved }: RecordSaverPro
     return () => {
       cancelled = true;
     };
+    // onSaved는 부모가 다시 그려질 때마다 바뀔 수 있어 의존성에서 뺀다. (저장이 끝났을 때 한 번만 부른다)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, resolved]);
 
   function retry() {
+    onRetry?.();
     setPhase({ name: "saving" });
     setAttempt((count) => count + 1);
   }

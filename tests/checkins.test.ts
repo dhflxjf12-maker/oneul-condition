@@ -5,7 +5,14 @@ import { drizzle } from "drizzle-orm/pglite";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { applyMigrations } from "../db/migrate.mjs";
 import { checkins, users } from "../db/schema";
-import { saveCheckinRecord, saveCheckinSchema, saveSuggestionRecord, saveSuggestionSchema } from "../lib/checkins/save";
+import {
+  saveCheckinRecord,
+  saveCheckinSchema,
+  saveFeedbackRecord,
+  saveFeedbackSchema,
+  saveSuggestionRecord,
+  saveSuggestionSchema,
+} from "../lib/checkins/save";
 import { createEmptySoreness } from "../lib/domain/score";
 import type { CheckinInput } from "../lib/domain/types";
 import { createUser } from "../lib/auth/signup";
@@ -175,5 +182,44 @@ describe("제안 저장 (서버 재검사)", () => {
   it("화면이 fallback이라고 알린 제안도 같은 검사를 거친다", async () => {
     const result = await saveSuggestionRecord(db, { userId: userA, checkinDate: "2026-11-24", source: "fallback", suggestion: goodSuggestion });
     expect(result).toEqual({ status: "saved", source: "fallback" });
+  });
+}, 30000);
+
+describe("제안 평가 저장 (👍/👎)", () => {
+  beforeEach(async () => {
+    await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input }, day1);
+  });
+
+  it("입력 검사: up/down만 허용", () => {
+    expect(saveFeedbackSchema.safeParse({ checkinDate: "2026-11-24", feedback: "up" }).success).toBe(true);
+    expect(saveFeedbackSchema.safeParse({ checkinDate: "2026-11-24", feedback: "meh" }).success).toBe(false);
+    expect(saveFeedbackSchema.safeParse({ checkinDate: "오늘", feedback: "up" }).success).toBe(false);
+  });
+
+  it("제안이 저장된 기록에는 평가가 저장되고, 다시 누르면 바뀐다", async () => {
+    await saveSuggestionRecord(db, { userId: userA, checkinDate: "2026-11-24", source: "ai", suggestion: goodSuggestion });
+    expect(await saveFeedbackRecord(db, { userId: userA, checkinDate: "2026-11-24", feedback: "up" })).toEqual({ status: "saved" });
+    expect((await rows())[0].feedback).toBe("up");
+    await saveFeedbackRecord(db, { userId: userA, checkinDate: "2026-11-24", feedback: "down" });
+    expect((await rows())[0].feedback).toBe("down");
+  });
+
+  it("평가할 제안이 아직 없으면 저장하지 않는다", async () => {
+    expect(await saveFeedbackRecord(db, { userId: userA, checkinDate: "2026-11-24", feedback: "up" })).toEqual({ status: "no_suggestion" });
+    expect((await rows())[0].feedback).toBeNull();
+  });
+
+  it("다른 사람의 기록이나 없는 날짜에는 저장할 수 없다", async () => {
+    await saveSuggestionRecord(db, { userId: userA, checkinDate: "2026-11-24", source: "ai", suggestion: goodSuggestion });
+    expect((await saveFeedbackRecord(db, { userId: userB, checkinDate: "2026-11-24", feedback: "down" })).status).toBe("no_suggestion");
+    expect((await saveFeedbackRecord(db, { userId: userA, checkinDate: "2026-11-30", feedback: "down" })).status).toBe("no_suggestion");
+    expect((await rows())[0].feedback).toBeNull();
+  });
+
+  it("같은 날 다시 체크인하면 평가가 지워진다", async () => {
+    await saveSuggestionRecord(db, { userId: userA, checkinDate: "2026-11-24", source: "ai", suggestion: goodSuggestion });
+    await saveFeedbackRecord(db, { userId: userA, checkinDate: "2026-11-24", feedback: "up" });
+    await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input }, new Date("2026-11-24T21:00:00+09:00"));
+    expect((await rows())[0].feedback).toBeNull();
   });
 }, 30000);

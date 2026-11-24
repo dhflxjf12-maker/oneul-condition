@@ -5,6 +5,8 @@ import { getSessionUserId } from "@/lib/auth/session";
 import {
   saveCheckinRecord,
   saveCheckinSchema,
+  saveFeedbackRecord,
+  saveFeedbackSchema,
   saveSuggestionRecord,
   saveSuggestionSchema,
 } from "@/lib/checkins/save";
@@ -61,6 +63,27 @@ export async function saveSuggestion(payload: unknown): Promise<SaveSuggestionAc
     const result = await saveSuggestionRecord(getDb(), { userId, ...parsed.data });
     if (result.status === "no_checkin") return { ok: false, code: "NO_CHECKIN" };
     return { ok: true, source: result.source };
+  } catch {
+    return { ok: false, code: "SERVER_ERROR" };
+  }
+}
+
+export type SaveFeedbackActionResult =
+  | { ok: true }
+  | { ok: false; code: "UNAUTHORIZED" | "INVALID_INPUT" | "NO_SUGGESTION" | "SERVER_ERROR" };
+
+/** 👍/👎 평가를 내 오늘 기록에 저장한다. */
+export async function saveFeedback(payload: unknown): Promise<SaveFeedbackActionResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { ok: false, code: "UNAUTHORIZED" };
+
+  const parsed = saveFeedbackSchema.safeParse(payload);
+  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+  if (!isDbConfigured()) return { ok: false, code: "SERVER_ERROR" };
+
+  try {
+    const result = await saveFeedbackRecord(getDb(), { userId, ...parsed.data });
+    return result.status === "saved" ? { ok: true } : { ok: false, code: "NO_SUGGESTION" };
   } catch {
     return { ok: false, code: "SERVER_ERROR" };
   }

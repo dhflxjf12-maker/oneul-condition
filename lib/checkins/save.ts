@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { checkins, users } from "../../db/schema";
@@ -68,6 +68,12 @@ export async function saveCheckinRecord(db: AnyPgDb, input: SaveCheckinInput, no
   return { checkinDate, score: decided.score, intensity: decided.intensity };
 }
 
+/** saveFeedback 입력 검사 */
+export const saveFeedbackSchema = z.object({
+  checkinDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  feedback: z.enum(["up", "down"]),
+});
+
 export type SaveSuggestionInput = { userId: string; checkinDate: string; source: SuggestionSource; suggestion: unknown };
 export type SaveSuggestionResult = { status: "saved"; source: SuggestionSource } | { status: "no_checkin" };
 
@@ -109,4 +115,22 @@ export async function saveSuggestionRecord(db: AnyPgDb, input: SaveSuggestionInp
     .where(and(eq(checkins.userId, userId), eq(checkins.checkinDate, checkinDate)));
 
   return { status: "saved", source };
+}
+
+export type SaveFeedbackResult = { status: "saved" } | { status: "no_suggestion" };
+
+/**
+ * 제안에 대한 👍(up)/👎(down)를 내 기록에 저장한다. 다시 누르면 바꿔 저장한다.
+ * 제안이 아직 저장되지 않은 기록(평가할 제안이 없는 기록)에는 저장하지 않는다.
+ */
+export async function saveFeedbackRecord(
+  db: AnyPgDb,
+  input: { userId: string; checkinDate: string; feedback: "up" | "down" },
+): Promise<SaveFeedbackResult> {
+  const rows = await db
+    .update(checkins)
+    .set({ feedback: input.feedback, updatedAt: new Date() })
+    .where(and(eq(checkins.userId, input.userId), eq(checkins.checkinDate, input.checkinDate), isNotNull(checkins.suggestion)))
+    .returning({ id: checkins.id });
+  return rows.length === 0 ? { status: "no_suggestion" } : { status: "saved" };
 }
