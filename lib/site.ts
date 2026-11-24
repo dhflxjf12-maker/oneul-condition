@@ -4,4 +4,4 @@
  * 비밀번호를 잊은 사용자가 요청을 보낼 관리자 문의 이메일 주소 (PRD: 로그인 화면에 안내).
  * 아직 정해지지 않았다. 주소가 정해지면 여기에 적으면 로그인 화면에 자동으로 보인다.
  */
-export const ADMIN_CONTACT_EMAIL = "";
+export const ADMIN_CONTACT_EMAIL = "jangsu9898@naver.com";
