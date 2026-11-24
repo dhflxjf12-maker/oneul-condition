@@ -10,8 +10,9 @@ import { RecordSaver } from "./RecordSaver";
 import { SafetyNotice } from "./SafetyNotice";
 import { ScoreCard } from "./ScoreCard";
 import { SuggestionCard } from "./SuggestionCard";
+import { SurveyPrompt } from "./SurveyPrompt";
 
-// Design Ref: §5.2 결과 화면 — 점수 카드 → 제안 카드 → 👍/👎(로그인·저장 뒤) → 기록 저장 상태 → 안전 안내문.
+// Design Ref: §5.2 결과 화면 — 점수 카드 → 제안 카드 → 👍/👎(로그인·저장 뒤) → 기록 저장 상태 → 안전 안내문 → (주 1회) 체감 질문.
 // 입력을 고쳐 다시 점수를 볼 때마다 새로 만들어져서(부모가 key를 바꿈), 제안·저장도 새로 시작한다.
 // 이용 기록(지표 측정용): 제안이 3초 이상 화면에 보이면 markSuggestionViewed로 "표시됨"만 남긴다.
 
@@ -77,6 +78,7 @@ export function ResultView({ level, input, durationSeconds, decided, loggedIn }:
         onRetry={() => setSavedDate(null)}
       />
       <SafetyNotice />
+      {savedDate ? <SurveyPrompt /> : null}
     </>
   );
 }

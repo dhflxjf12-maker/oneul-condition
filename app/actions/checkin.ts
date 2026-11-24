@@ -13,6 +13,7 @@ import {
   saveSuggestionSchema,
 } from "@/lib/checkins/save";
 import type { SuggestionSource } from "@/lib/domain/types";
+import { getDueSurvey, saveSurveyRecord, saveSurveySchema } from "@/lib/survey/weekly";
 
 // Design Ref: §4.1·§4.4 — saveCheckin / saveSuggestion 서버 액션. 로그인한 본인의 기록만 쓴다(세션의 계정 번호만 사용).
 
@@ -107,6 +108,42 @@ export async function markSuggestionViewed(payload: unknown): Promise<MarkViewed
   try {
     const result = await markSuggestionViewedRecord(getDb(), { userId, ...parsed.data });
     return result.status === "marked" ? { ok: true } : { ok: false, code: "NO_SUGGESTION" };
+  } catch {
+    return { ok: false, code: "SERVER_ERROR" };
+  }
+}
+
+/**
+ * 이번에 주 1회 체감 질문을 보여 줘야 하면 대상 주(지난주 월요일)를 돌려준다. 아니면 null.
+ * 보여 주기로 한 순간 "물어봤다"고 기록하므로, 같은 주에는 다시 묻지 않는다.
+ */
+export async function getWeeklySurvey(): Promise<{ weekStart: string } | null> {
+  const userId = await getSessionUserId();
+  if (!userId || !isDbConfigured()) return null;
+  try {
+    return await getDueSurvey(getDb(), userId);
+  } catch {
+    // 체감 질문은 부가 기능이라 실패하면 그냥 묻지 않는다.
+    return null;
+  }
+}
+
+export type SaveSurveyActionResult =
+  | { ok: true }
+  | { ok: false; code: "UNAUTHORIZED" | "INVALID_INPUT" | "NOT_ASKED" | "SERVER_ERROR" };
+
+/** "맞았다/아니다" 응답을 저장한다. */
+export async function saveSurvey(payload: unknown): Promise<SaveSurveyActionResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { ok: false, code: "UNAUTHORIZED" };
+
+  const parsed = saveSurveySchema.safeParse(payload);
+  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+  if (!isDbConfigured()) return { ok: false, code: "SERVER_ERROR" };
+
+  try {
+    const result = await saveSurveyRecord(getDb(), { userId, ...parsed.data });
+    return result.status === "saved" ? { ok: true } : { ok: false, code: "NOT_ASKED" };
   } catch {
     return { ok: false, code: "SERVER_ERROR" };
   }
