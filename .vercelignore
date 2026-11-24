@@ -1,0 +1,7 @@
+# Vercel 업로드에서 제외 (배포에 필요 없는 큰 파일·작업 폴더)
+_downloads
+trash-can
+.bkit
+.claude
+scripts
+tests
