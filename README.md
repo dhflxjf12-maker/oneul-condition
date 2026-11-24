@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 오늘컨디션
 
-## Getting Started
+아침에 **1분** 체크인하면 오늘의 **컨디션 점수(0~100)**와 알맞은 **운동 강도**, 그리고 "오늘 무엇을 얼마나 할지"까지 알려 주는 웹 앱입니다. 취미로 운동하는 애호가부터 선수까지, 매일 컨디션이 다른 사람이 오늘 강도를 정하는 데 쓰도록 만들었습니다.
 
-First, run the development server:
+> 이 서비스는 운동 계획을 돕는 참고용이며 의료 서비스가 아닙니다.
+
+## 무엇을 해 주나요
+
+1. **체크인(6개 항목, 모두 선택형):** 수면 시간·수면의 질·피로도·근육통(6부위)·기분·어제 운동량
+2. **컨디션 점수(0~100):** 고정 공식으로 계산합니다. 같은 입력이면 항상 같은 점수가 나옵니다.
+3. **운동 강도(휴식 / 가벼움 / 보통 / 높음)와 구체적 제안:** 강도는 규칙으로 정하고, 그 안에서 AI가 종류·시간·쉬어야 할 부위를 제안합니다.
+4. **로그인(선택):** 이메일 + 비밀번호로 가입하면 기록 저장, 제안 평가(👍/👎), 최근 7일 추이, 내일 컨디션 경향(기복 예상)을 쓸 수 있습니다.
+
+로그인하지 않아도 점수와 제안까지 볼 수 있고, 이때 입력값은 서버에 저장하지 않습니다.
+
+## 핵심 원칙
+
+- **점수와 강도는 AI가 아니라 고정 공식**으로 정합니다. AI는 정해진 강도 안에서 제안 문장만 만들고, 점수와 강도를 바꾸지 못합니다.
+- AI 응답이 실패하거나 5초 안에 오지 않거나 규칙(시간 범위, 쉬어야 할 부위 등)을 어기면 **강도별 기본 문구**를 대신 보여 줍니다.
+- AI에는 체크인 값(숫자)만 보내고 이메일 같은 식별 정보는 보내지 않습니다.
+- 근육통 6부위가 모두 4점 이상이면 강도를 "휴식"으로 고정하고 AI를 쓰지 않습니다.
+
+## 기술 스택
+
+| 영역 | 사용 기술 |
+|---|---|
+| 프레임워크 | Next.js 16 (App Router), React 19, TypeScript |
+| 스타일 | Tailwind CSS 4 (골드 배경 + 흰색 카드, 반응형, 접근성 기준 반영) |
+| 데이터베이스 | Supabase Postgres + Drizzle ORM |
+| 로그인 | 서버 액션 + Zod 검사 + bcrypt 해시 + jose 세션(30일) |
+| AI 제안 | Anthropic API (`claude-haiku-5-5`) |
+| 테스트 | Vitest (점수·강도·제안 규칙, 로그인, 기록, 보안 등 190여 개) |
+| 배포 | Vercel |
+
+## 문서
+
+- [PRD.md](PRD.md) — 서비스 기획서 (문제, 목표, 기능, 범위, 보안·개인정보)
+- [PLAN.md](PLAN.md) — 개발 계획서 (22개 작업 순서, 성공 기준)
+- [DESIGN.md](DESIGN.md) — 설계서 (데이터 모델, API, 화면, 테스트 계획)
+
+## 직접 실행해 보기
+
+필요한 것: Node.js 20 이상, Postgres 데이터베이스(예: Supabase), (선택) Anthropic API 키
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+# .env 파일을 만들어 아래 표의 환경 변수를 채웁니다 (NAME=값 형식)
+npm run db:migrate        # 데이터베이스 표를 만듭니다
+npm run dev               # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| 환경 변수 | 용도 | 없으면 |
+|---|---|---|
+| `DATABASE_URL` | 데이터베이스 접속 주소 | 로그인·기록 저장 불가 |
+| `SESSION_SECRET` | 로그인 세션 서명 키 (32자 이상 무작위 문자열) | 로그인·가입 불가 |
+| `EMAIL_HASH_SECRET` | 로그인 시도 기록의 이메일 해시용 비밀 키 (32자 이상) | 로그인·가입 불가 |
+| `ANTHROPIC_API_KEY` | AI 제안 생성 | 항상 기본 문구로 제안 |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+비밀 값은 코드에 적지 않고 `.env`(커밋 금지)와 Vercel 환경 변수에만 보관합니다.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 자주 쓰는 명령
 
-## Learn More
+```bash
+npm run lint                 # 코드 검사
+npm test                     # 자동 테스트
+npm run build                # 배포용 빌드
+npm run admin:reset-password -- 가입이메일@example.com   # 관리자: 비밀번호 초기화(임시 비밀번호 발급)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 개인정보
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+가입할 때 만 14세 이상 확인과 건강 정보(컨디션 기록) 수집·이용 동의를 받습니다. 로그인하지 않은 사용자의 체크인 값은 저장하지 않으며, 계정은 언제든 앱에서 직접 삭제할 수 있습니다. 자세한 내용은 앱의 `/privacy` 화면에 있습니다.
