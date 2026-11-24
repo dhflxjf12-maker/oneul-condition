@@ -41,7 +41,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
       <>
         <p className="mt-2">
           운동 제안 문장을 만들기 위해, 체크인 값(숫자 선택값)과 운동 수준, 이미 정해진 운동 강도를 미국의 AI 업체{" "}
-          <strong>Anthropic</strong>의 서비스로 보냅니다. <strong>로그인하지 않아도</strong> 제안을 받을 때 같은 방식으로 보냅니다.
+          <strong>OpenAI</strong>의 서비스로 보냅니다. <strong>로그인하지 않아도</strong> 제안을 받을 때 같은 방식으로 보냅니다.
         </p>
         <p className="mt-2">
           이메일, 계정 번호, 이름 같은 <strong>누구인지 알 수 있는 정보는 보내지 않습니다.</strong> 직접 입력하는 글자 칸이 없어서, 보내는 값은

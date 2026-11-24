@@ -135,7 +135,7 @@
 | **Drizzle ORM** | 서랍장에 말을 걸 때 쓰는 번역기(코드로 쓰면 알아서 번역) | 데이터베이스 읽기·쓰기 | 가볍고 Vercel 서버리스에 잘 맞음 |
 | **bcryptjs** | 비밀번호를 원래대로 되돌릴 수 없게 뒤섞는 도구 | 비밀번호 해시 | 설치가 간단한 순수 자바스크립트 버전 |
 | **jose** | 로그인 상태를 담은 쪽지를 자물쇠로 잠그는 도구 | 로그인 세션 쿠키 | Next.js 공식 가이드가 쓰는 방식 |
-| **Anthropic SDK** (모델: Claude Haiku 5.5 후보) | 운동 제안 문장을 만들어 주는 AI에 말을 거는 도구 | `/api/suggestion` | 빠르고 저렴한 모델 후보, 최종 제품은 개발 단계 확정 |
+| **OpenAI Chat Completions API** (모델: gpt-4o-mini, `fetch`로 호출) | 운동 제안 문장을 만들어 주는 AI에 말을 거는 도구 | `/api/suggestion` | 빠르고 저렴한 모델 후보, 최종 제품은 개발 단계 확정 |
 
 **로그인 방식 (확정)**
 
@@ -503,7 +503,7 @@
 - [ ] AI에는 체크인 값·운동 수준만 전달 (이메일·계정 번호 제외)
 - [ ] AI 응답은 항상 검사 후 사용, 점수·강도는 AI가 바꾸지 못함
 - [ ] 호출 한도: 기기 쿠키 기준 하루 20회 (설계 제안: 쿠키를 지워 우회하는 경우를 막기 위해 서버 쪽 보조 상한도 둔다, 값은 작업 9에서 확정)
-- [ ] 비밀 값(`DATABASE_URL`, `SESSION_SECRET`, `ANTHROPIC_API_KEY`)은 `.env`와 Vercel 환경 변수에만, 코드·채팅에 노출 금지
+- [ ] 비밀 값(`DATABASE_URL`, `SESSION_SECRET`, `OPENAI_API_KEY`)은 `.env`와 Vercel 환경 변수에만, 코드·채팅에 노출 금지
 
 ---
 
@@ -635,7 +635,7 @@ scripts/                                     migrate.mjs, reset-password.mjs (�
 | 주석·설명 | **한국어** (CLAUDE.md) | |
 | 새 파일 위치 | my-app 폴더 안에만 (CLAUDE.md) | |
 
-환경 변수 이름: `DATABASE_URL`, `SESSION_SECRET`, `ANTHROPIC_API_KEY`, `EMAIL_HASH_SECRET` (서버 전용, `NEXT_PUBLIC_` 접두사 사용 금지).
+환경 변수 이름: `DATABASE_URL`, `SESSION_SECRET`, `OPENAI_API_KEY`, `EMAIL_HASH_SECRET` (서버 전용, `NEXT_PUBLIC_` 접두사 사용 금지).
 
 규칙 상수(환산표·비중·구간·시간 범위·한도 숫자)는 `lib/domain/constants.ts` 한 곳에만 둔다.
 

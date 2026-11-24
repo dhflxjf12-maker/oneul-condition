@@ -106,7 +106,7 @@ export function SignupForm() {
           </label>
           <p id="consent-detail" className="mt-1 pl-9 text-ink-sub">
             체크인에서 입력한 수면·피로·근육통 같은 컨디션 기록을 로그인한 계정에 저장하는 데 쓰며, 계정을 삭제하면 함께
-            지워져요. 운동 제안을 만들 때는 체크인 값(숫자)만 미국의 AI 서비스(Anthropic)로 보내고, 이메일 등은 보내지 않아요.{" "}
+            지워져요. 운동 제안을 만들 때는 체크인 값(숫자)만 미국의 AI 서비스(OpenAI)로 보내고, 이메일 등은 보내지 않아요.{" "}
             <Link href="/privacy" className="font-semibold text-accent underline">
               자세히 보기
             </Link>

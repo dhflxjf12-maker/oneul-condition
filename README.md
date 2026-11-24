@@ -28,7 +28,7 @@
 | 스타일 | Tailwind CSS 4 (골드 배경 + 흰색 카드, 반응형, 접근성 기준 반영) |
 | 데이터베이스 | Supabase Postgres + Drizzle ORM |
 | 로그인 | 서버 액션 + Zod 검사 + bcrypt 해시 + jose 세션(30일) |
-| AI 제안 | Anthropic API (`claude-haiku-5-5`) |
+| AI 제안 | OpenAI API (`gpt-4o-mini`) |
 | 테스트 | Vitest (점수·강도·제안 규칙, 로그인, 기록, 보안 등 190여 개) |
 | 배포 | Vercel |
 
@@ -40,7 +40,7 @@
 
 ## 직접 실행해 보기
 
-필요한 것: Node.js 20 이상, Postgres 데이터베이스(예: Supabase), (선택) Anthropic API 키
+필요한 것: Node.js 20 이상, Postgres 데이터베이스(예: Supabase), (선택) OpenAI API 키
 
 ```bash
 npm install
@@ -54,7 +54,7 @@ npm run dev               # http://localhost:3000
 | `DATABASE_URL` | 데이터베이스 접속 주소 | 로그인·기록 저장 불가 |
 | `SESSION_SECRET` | 로그인 세션 서명 키 (32자 이상 무작위 문자열) | 로그인·가입 불가 |
 | `EMAIL_HASH_SECRET` | 로그인 시도 기록의 이메일 해시용 비밀 키 (32자 이상) | 로그인·가입 불가 |
-| `ANTHROPIC_API_KEY` | AI 제안 생성 | 항상 기본 문구로 제안 |
+| `OPENAI_API_KEY` | AI 제안 생성 (모델 `gpt-4o-mini`, `OPENAI_MODEL`로 변경 가능) | 항상 기본 문구로 제안 |
 
 비밀 값은 코드에 적지 않고 `.env`(커밋 금지)와 Vercel 환경 변수에만 보관합니다.
 

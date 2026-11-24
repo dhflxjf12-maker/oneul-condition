@@ -250,7 +250,7 @@ PRD 1~2번 참고. 느낌에 의존한 강도 결정, 웨어러블의 기기·�
 |---|---|---|
 | `DATABASE_URL` | 데이터베이스 접속 | 서버 |
 | `SESSION_SECRET` | 로그인 세션 암호화 키 | 서버 |
-| `ANTHROPIC_API_KEY` | AI 제안 생성 | 서버 |
+| `OPENAI_API_KEY` | AI 제안 생성 (OpenAI `gpt-4o-mini`) | 서버 |
 | `EMAIL_HASH_SECRET` | 로그인 시도 기록의 이메일 해시에 섞는 비밀 키 | 서버 |
 
 ---

@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import { MAX_AI_CALLS_PER_DAY_GLOBAL } from "@/lib/domain/constants";
 import { ipKeyFrom } from "@/lib/request-ip";
-import { createAnthropicCaller } from "@/lib/suggestion/anthropic";
 import { generateSuggestion } from "@/lib/suggestion/generate";
 import { consumeDailyLimit } from "@/lib/suggestion/limit";
+import { createOpenAiCaller } from "@/lib/suggestion/openai";
 import { MAX_AI_CALLS_PER_DAY_PER_IP } from "@/lib/suggestion/rate-limit";
 import { parseSuggestionRequest } from "@/lib/suggestion/request";
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await generateSuggestion(parsed, {
-      callModel: createAnthropicCaller(process.env.ANTHROPIC_API_KEY),
+      callModel: createOpenAiCaller(process.env.OPENAI_API_KEY, { model: process.env.OPENAI_MODEL, baseUrl: process.env.OPENAI_BASE_URL }),
       // 순서: IP 한도 → 기기 한도 → 서비스 전체 한도. 하나라도 넘으면 AI를 부르지 않고 기본 문구를 준다.
       tryConsume: async () =>
         (await consumeDailyLimit(`ip:${ipKey}`, MAX_AI_CALLS_PER_DAY_PER_IP)) &&
