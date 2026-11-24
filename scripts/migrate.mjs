@@ -12,7 +12,7 @@ if (!url) {
   process.exit(1);
 }
 
-const sql = postgres(url, { max: 1, ssl: "require", onnotice: () => {} });
+const sql = postgres(url, { max: 1, ssl: "require", max_pipeline: 1, onnotice: () => {} });
 try {
   const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "db", "migrations");
   const applied = await applyMigrations(

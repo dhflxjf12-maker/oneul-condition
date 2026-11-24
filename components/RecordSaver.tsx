@@ -18,7 +18,9 @@ type Phase =
   | { name: "saving" }
   | { name: "checkin-saved"; checkinDate: string }
   | { name: "saved" }
-  | { name: "failed" };
+  | { name: "failed" }
+  /** 저장하려는데 로그인이 풀려 있음 (다른 기기에서 로그아웃·계정 삭제, 세션 만료 등) */
+  | { name: "unauthorized" };
 
 type RecordSaverProps = {
   /** 로그인 여부 (아직 모르면 null) */
@@ -48,7 +50,8 @@ export function RecordSaver({ loggedIn, level, input, durationSeconds, resolved,
     saveCheckin({ level, checkin: input, durationSeconds })
       .then((result) => {
         if (cancelled) return;
-        setPhase(result.ok ? { name: "checkin-saved", checkinDate: result.checkinDate } : { name: "failed" });
+        if (result.ok) setPhase({ name: "checkin-saved", checkinDate: result.checkinDate });
+        else setPhase(result.code === "UNAUTHORIZED" ? { name: "unauthorized" } : { name: "failed" });
       })
       .catch(() => {
         if (!cancelled) setPhase({ name: "failed" });
@@ -69,7 +72,7 @@ export function RecordSaver({ loggedIn, level, input, durationSeconds, resolved,
           setPhase({ name: "saved" });
           onSaved?.(phase.checkinDate);
         } else {
-          setPhase({ name: "failed" });
+          setPhase(result.code === "UNAUTHORIZED" ? { name: "unauthorized" } : { name: "failed" });
         }
       })
       .catch(() => {
@@ -97,6 +100,24 @@ export function RecordSaver({ loggedIn, level, input, durationSeconds, resolved,
           기록 저장
         </h2>
         <p className="mt-1 text-ink-sub">로그인한 뒤 오늘 체크인을 다시 하면 기록이 저장돼요.</p>
+        <Link href="/login" className={buttonClassName("secondary", "mt-3")}>
+          로그인
+        </Link>
+      </Card>
+    );
+  }
+
+  if (phase.name === "unauthorized") {
+    return (
+      <Card aria-labelledby="record-heading">
+        <h2 id="record-heading" className="text-base font-bold">
+          기록 저장
+        </h2>
+        <p role="alert" className="mt-1 font-semibold text-danger">
+          <span aria-hidden="true">⚠ </span>
+          로그인이 풀려서 기록을 저장하지 못했어요. 점수와 제안은 그대로 볼 수 있어요.
+        </p>
+        <p className="mt-1 text-ink-sub">다시 로그인한 뒤 오늘 체크인을 다시 하면 기록이 저장돼요.</p>
         <Link href="/login" className={buttonClassName("secondary", "mt-3")}>
           로그인
         </Link>
