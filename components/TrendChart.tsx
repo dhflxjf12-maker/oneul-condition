@@ -36,7 +36,7 @@ export function TrendChart({ points, today }: TrendChartProps) {
           <div aria-hidden="true" className="mt-4 flex items-end gap-2" style={{ height: CHART_HEIGHT_PX + 28 }}>
             {points.map((point) => (
               <div key={point.date} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-                <span className="text-sm font-bold tabular-nums">{point.score ?? "–"}</span>
+                <span className="text-base font-bold tabular-nums">{point.score ?? "–"}</span>
                 <div
                   className={`w-full rounded-t-control ${point.score === null ? "border-2 border-dashed border-control-line" : "bg-accent"}`}
                   style={{ height: point.score === null ? 6 : Math.max(6, Math.round((point.score / 100) * CHART_HEIGHT_PX)) }}

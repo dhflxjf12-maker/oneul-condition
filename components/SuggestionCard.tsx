@@ -113,7 +113,7 @@ export function SuggestionCard({ level, input, decided, onResolved }: Suggestion
               {state.suggestion.restParts.length > 0 ? partNames(state.suggestion.restParts) : "없음"}
             </li>
           </ul>
-          <p className="mt-3 text-sm text-ink-sub">{state.source === "ai" ? "AI가 만든 제안" : "기본 안내"}</p>
+          <p className="mt-3 text-ink-sub">{state.source === "ai" ? "AI가 만든 제안" : "기본 안내"}</p>
         </div>
       )}
     </Card>

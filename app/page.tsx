@@ -14,6 +14,8 @@ export default function Home() {
         </Suspense>
       }
     >
+      {/* 화면 읽기 프로그램이 페이지 제목을 알 수 있도록 하는 제목 (화면에는 보이지 않음) */}
+      <h1 className="sr-only">오늘의 컨디션 체크인</h1>
       <CheckinScreen />
     </AppShell>
   );

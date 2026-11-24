@@ -15,7 +15,7 @@ export function ScoreCard({ result }: ScoreCardProps) {
 
   return (
     <Card aria-labelledby="score-heading" className="text-center">
-      <h2 id="score-heading" className="text-lg font-bold">
+      <h2 id="score-heading" tabIndex={-1} className="text-lg font-bold outline-none">
         오늘의 컨디션
       </h2>
 

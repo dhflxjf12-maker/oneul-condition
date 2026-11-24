@@ -33,6 +33,13 @@ export function CheckinScreen() {
     };
   }, []);
 
+  // 결과가 나타나면 키보드·화면 읽기 사용자가 바로 알 수 있도록 점수 제목으로 초점을 옮긴다. (버튼이 사라지며 초점을 잃는 것을 막음)
+  const submissionId = submission?.id;
+  useEffect(() => {
+    if (submissionId === undefined) return;
+    document.getElementById("score-heading")?.focus({ preventScroll: true });
+  }, [submissionId]);
+
   function handleComplete(result: CheckinResult) {
     setSubmission((previous) => ({ id: (previous?.id ?? 0) + 1, result }));
     window.scrollTo({ top: 0 });
