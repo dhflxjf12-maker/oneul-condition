@@ -19,9 +19,9 @@ export function AppShell({ children, headerAction }: AppShellProps) {
       </a>
 
       <div className="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-8">
-        <Card as="header" className="flex items-center justify-between gap-3 !py-3">
+        <Card as="header" className="flex flex-wrap items-center justify-between gap-3 !py-3">
           <p className="text-lg font-bold">오늘컨디션</p>
-          {headerAction ? <nav aria-label="바로 가기" className="flex items-center gap-2">{headerAction}</nav> : null}
+          {headerAction ? <nav aria-label="바로 가기" className="flex flex-wrap items-center gap-2">{headerAction}</nav> : null}
         </Card>
 
         <main id="main" tabIndex={-1} className="flex flex-col gap-4 outline-none">

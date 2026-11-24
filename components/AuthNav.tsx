@@ -13,6 +13,9 @@ export async function AuthNav() {
   if (user) {
     return (
       <>
+        <Link href="/history" className={buttonClassName("secondary")}>
+          기록 보기
+        </Link>
         <Link href="/account" className={buttonClassName("secondary")}>
           계정
         </Link>
