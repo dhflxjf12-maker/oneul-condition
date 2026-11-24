@@ -23,7 +23,12 @@ import { SorenessPicker, type SorenessMode } from "./SorenessPicker";
 export type CheckinResult = {
   input: CheckinInput;
   level: ExerciseLevel;
+  /** 체크인 소요 시간(초): 첫 입력부터 [점수 보기]까지. 측정하지 못했으면 없음 (지표 측정용 이용 기록) */
+  durationSeconds?: number;
 };
+
+/** 소요 시간으로 인정하는 상한(초). 이보다 길면 중간에 자리를 비운 것으로 보고 기록하지 않는다. */
+const MAX_DURATION_SECONDS = 60 * 60;
 
 /** 필수 항목 5개 (근육통은 처음부터 "없음"으로 완료 상태) */
 type RequiredKey = (typeof REQUIRED_ITEM_KEYS)[number];
@@ -78,6 +83,8 @@ type CheckinFormProps = {
 /** 체크인 입력 폼 */
 export function CheckinForm({ onComplete }: CheckinFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
+  // 체크인을 시작한 시각 (이 화면에서 처음 입력을 바꾼 때). 저장해 둔 값을 불러오기만 한 것은 시작으로 보지 않는다.
+  const startedAtRef = useRef<number | null>(null);
   // 운동 수준 기본값은 애호가 (PRD에 정해진 기본값이 없어서 가장 넓은 대상으로 둠)
   const [level, setLevel] = useState<ExerciseLevel>("hobby");
   const [draft, setDraft] = useState<Draft>({});
@@ -141,11 +148,26 @@ export function CheckinForm({ onComplete }: CheckinFormProps) {
     }
 
     setMissing([]);
-    onComplete({ input, level });
+    const startedAt = startedAtRef.current;
+    const seconds = startedAt === null ? null : Math.round((Date.now() - startedAt) / 1000);
+    // 다음 체크인(입력 고치기)은 새로 시작한 것으로 센다.
+    startedAtRef.current = null;
+    onComplete({
+      input,
+      level,
+      durationSeconds: seconds !== null && seconds <= MAX_DURATION_SECONDS ? seconds : undefined,
+    });
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit}
+      // 칩을 처음 고르는 순간을 체크인 시작으로 본다. (입력 변경 이벤트는 폼까지 올라온다)
+      onChange={() => {
+        startedAtRef.current ??= Date.now();
+      }}
+      noValidate className="flex flex-col gap-4">
       <Card aria-label="진행 상황" className="!py-3">
         <p role="status" className="font-semibold">
           {doneCount}/6 완료

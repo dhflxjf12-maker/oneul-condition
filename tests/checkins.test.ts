@@ -6,6 +6,8 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { applyMigrations } from "../db/migrate.mjs";
 import { checkins, users } from "../db/schema";
 import {
+  markSuggestionViewedRecord,
+  markViewedSchema,
   saveCheckinRecord,
   saveCheckinSchema,
   saveFeedbackRecord,
@@ -221,5 +223,35 @@ describe("제안 평가 저장 (👍/👎)", () => {
     await saveFeedbackRecord(db, { userId: userA, checkinDate: "2026-11-24", feedback: "up" });
     await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input }, new Date("2026-11-24T21:00:00+09:00"));
     expect((await rows())[0].feedback).toBeNull();
+  });
+}, 30000);
+
+describe("이용 기록 (제안 표시 여부·소요 시간)", () => {
+  beforeEach(async () => {
+    await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input, durationSeconds: 52 }, day1);
+  });
+
+  it("소요 시간이 기록되고, 같은 날 다시 체크인하면 새 값으로 바뀐다", async () => {
+    expect((await rows())[0].durationSeconds).toBe(52);
+    await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input, durationSeconds: 30 }, day1);
+    expect((await rows())[0].durationSeconds).toBe(30);
+    await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input }, day1);
+    expect((await rows())[0].durationSeconds).toBeNull();
+  });
+
+  it("입력 검사: 날짜 형식만 허용", () => {
+    expect(markViewedSchema.safeParse({ checkinDate: "2026-11-24" }).success).toBe(true);
+    expect(markViewedSchema.safeParse({ checkinDate: "x" }).success).toBe(false);
+  });
+
+  it("제안이 저장된 내 기록에만 표시되고, 다시 체크인하면 초기화된다", async () => {
+    expect((await markSuggestionViewedRecord(db, { userId: userA, checkinDate: "2026-11-24" })).status).toBe("no_suggestion");
+    await saveSuggestionRecord(db, { userId: userA, checkinDate: "2026-11-24", source: "ai", suggestion: goodSuggestion });
+    expect((await markSuggestionViewedRecord(db, { userId: userB, checkinDate: "2026-11-24" })).status).toBe("no_suggestion");
+    expect((await rows())[0].suggestionViewed).toBe(false);
+    expect((await markSuggestionViewedRecord(db, { userId: userA, checkinDate: "2026-11-24" })).status).toBe("marked");
+    expect((await rows())[0].suggestionViewed).toBe(true);
+    await saveCheckinRecord(db, { userId: userA, level: "hobby", checkin: input }, day1);
+    expect((await rows())[0].suggestionViewed).toBe(false);
   });
 }, 30000);

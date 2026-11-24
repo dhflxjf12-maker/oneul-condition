@@ -3,6 +3,8 @@
 import { getDb, isDbConfigured } from "@/db";
 import { getSessionUserId } from "@/lib/auth/session";
 import {
+  markSuggestionViewedRecord,
+  markViewedSchema,
   saveCheckinRecord,
   saveCheckinSchema,
   saveFeedbackRecord,
@@ -84,6 +86,27 @@ export async function saveFeedback(payload: unknown): Promise<SaveFeedbackAction
   try {
     const result = await saveFeedbackRecord(getDb(), { userId, ...parsed.data });
     return result.status === "saved" ? { ok: true } : { ok: false, code: "NO_SUGGESTION" };
+  } catch {
+    return { ok: false, code: "SERVER_ERROR" };
+  }
+}
+
+export type MarkViewedActionResult =
+  | { ok: true }
+  | { ok: false; code: "UNAUTHORIZED" | "INVALID_INPUT" | "NO_SUGGESTION" | "SERVER_ERROR" };
+
+/** 제안이 3초 이상 표시되었음을 기록한다. (지표 측정용 이용 기록, 실패해도 사용자에게 알리지 않는다) */
+export async function markSuggestionViewed(payload: unknown): Promise<MarkViewedActionResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { ok: false, code: "UNAUTHORIZED" };
+
+  const parsed = markViewedSchema.safeParse(payload);
+  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+  if (!isDbConfigured()) return { ok: false, code: "SERVER_ERROR" };
+
+  try {
+    const result = await markSuggestionViewedRecord(getDb(), { userId, ...parsed.data });
+    return result.status === "marked" ? { ok: true } : { ok: false, code: "NO_SUGGESTION" };
   } catch {
     return { ok: false, code: "SERVER_ERROR" };
   }

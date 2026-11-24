@@ -74,6 +74,11 @@ export const saveFeedbackSchema = z.object({
   feedback: z.enum(["up", "down"]),
 });
 
+/** markSuggestionViewed 입력 검사 */
+export const markViewedSchema = z.object({
+  checkinDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
 export type SaveSuggestionInput = { userId: string; checkinDate: string; source: SuggestionSource; suggestion: unknown };
 export type SaveSuggestionResult = { status: "saved"; source: SuggestionSource } | { status: "no_checkin" };
 
@@ -133,4 +138,17 @@ export async function saveFeedbackRecord(
     .where(and(eq(checkins.userId, input.userId), eq(checkins.checkinDate, input.checkinDate), isNotNull(checkins.suggestion)))
     .returning({ id: checkins.id });
   return rows.length === 0 ? { status: "no_suggestion" } : { status: "saved" };
+}
+
+/** 제안이 3초 이상 화면에 보였다는 표시(이용 기록)만 내 기록에 남긴다. 저장된 제안이 없는 기록에는 남기지 않는다. */
+export async function markSuggestionViewedRecord(
+  db: AnyPgDb,
+  input: { userId: string; checkinDate: string },
+): Promise<{ status: "marked" | "no_suggestion" }> {
+  const rows = await db
+    .update(checkins)
+    .set({ suggestionViewed: true })
+    .where(and(eq(checkins.userId, input.userId), eq(checkins.checkinDate, input.checkinDate), isNotNull(checkins.suggestion)))
+    .returning({ id: checkins.id });
+  return { status: rows.length === 0 ? "no_suggestion" : "marked" };
 }

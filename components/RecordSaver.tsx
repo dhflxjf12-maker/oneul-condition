@@ -25,6 +25,8 @@ type RecordSaverProps = {
   loggedIn: boolean | null;
   level: ExerciseLevel;
   input: CheckinInput;
+  /** 체크인 소요 시간(초), 측정하지 못했으면 없음 */
+  durationSeconds?: number;
   /** 제안이 정해지면 채워진다 (아직이면 null) */
   resolved: Resolved | null;
   /** 제안까지 저장이 끝나면 기록 날짜와 함께 알려 준다. 👍/👎는 이때부터 누를 수 있다. */
@@ -34,7 +36,7 @@ type RecordSaverProps = {
 };
 
 /** 기록 저장 상태 카드 */
-export function RecordSaver({ loggedIn, level, input, resolved, onSaved, onRetry }: RecordSaverProps) {
+export function RecordSaver({ loggedIn, level, input, durationSeconds, resolved, onSaved, onRetry }: RecordSaverProps) {
   const [phase, setPhase] = useState<Phase>({ name: "saving" });
   // 다시 저장을 누를 때마다 올라가서, 아래 저장 순서를 처음부터 다시 돌린다.
   const [attempt, setAttempt] = useState(0);
@@ -43,7 +45,7 @@ export function RecordSaver({ loggedIn, level, input, resolved, onSaved, onRetry
   useEffect(() => {
     if (loggedIn !== true) return;
     let cancelled = false;
-    saveCheckin({ level, checkin: input })
+    saveCheckin({ level, checkin: input, durationSeconds })
       .then((result) => {
         if (cancelled) return;
         setPhase(result.ok ? { name: "checkin-saved", checkinDate: result.checkinDate } : { name: "failed" });
@@ -54,7 +56,7 @@ export function RecordSaver({ loggedIn, level, input, resolved, onSaved, onRetry
     return () => {
       cancelled = true;
     };
-  }, [loggedIn, level, input, attempt]);
+  }, [loggedIn, level, input, durationSeconds, attempt]);
 
   // 2단계: 체크인 저장이 끝났고 제안이 도착했으면 제안 저장
   useEffect(() => {

@@ -54,6 +54,7 @@ export function CheckinScreen() {
             key={submission.id}
             level={result.level}
             input={result.input}
+            durationSeconds={result.durationSeconds}
             decided={decided}
             loggedIn={loggedIn}
           />
