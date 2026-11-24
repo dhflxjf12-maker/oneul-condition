@@ -1,16 +1,17 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { AppShell } from "@/components/AppShell";
-import { buttonClassName } from "@/components/Button";
+import { AuthNav, AuthNavFallback } from "@/components/AuthNav";
 import { CheckinScreen } from "@/components/CheckinScreen";
 
-// "/" 첫 화면: 체크인 입력 → 결과(점수·제안·안내). 머리글에서 회원가입으로 갈 수 있다. (로그인 상태에 따른 표시는 작업 13번)
+// "/" 첫 화면: 체크인 입력 → 결과(점수·제안·안내). 머리글에는 로그인 상태에 따라 [로그인]·[회원가입] 또는 [로그아웃]이 보인다.
+// 로그인 상태는 요청마다 달라서 <Suspense>로 감싸고, 체크인 화면은 그대로 미리 만들어 둔다.
 export default function Home() {
   return (
     <AppShell
       headerAction={
-        <Link href="/signup" className={buttonClassName("secondary")}>
-          회원가입
-        </Link>
+        <Suspense fallback={<AuthNavFallback />}>
+          <AuthNav />
+        </Suspense>
       }
     >
       <CheckinScreen />

@@ -49,3 +49,25 @@ export function parseSignupForm(raw: { email?: unknown; password?: unknown; ageC
   }
   return { ok: false, errors };
 }
+
+// ---- 로그인 ----
+
+/** 로그인 실패 문구 (항상 이 문구 하나만 쓴다) */
+export const LOGIN_FAILED_MESSAGE = "이메일 또는 비밀번호가 맞지 않습니다.";
+
+export type LoginParseResult = { ok: true; email: string; password: string } | { ok: false; message: string };
+
+/**
+ * 로그인 폼 값을 검사한다. 형식이 이상한 이메일도 "비밀번호 불일치"와 같은 실패로 다뤄서(문구를 나누지 않음)
+ * 가입 여부나 이메일 형식 규칙을 알아내는 데 쓰이지 않게 한다. 비어 있을 때만 별도 안내를 한다.
+ */
+export function parseLoginForm(raw: { email?: unknown; password?: unknown }): LoginParseResult {
+  const email = typeof raw.email === "string" ? raw.email.trim().toLowerCase() : "";
+  const password = typeof raw.password === "string" ? raw.password : "";
+  if (email === "" || password === "") return { ok: false, message: "이메일과 비밀번호를 입력해 주세요." };
+  // 너무 긴 값은 저장·계산 없이 바로 실패 처리한다. (기록 표가 쓸데없이 커지는 것을 막음)
+  if (email.length > EMAIL_MAX_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
+    return { ok: false, message: LOGIN_FAILED_MESSAGE };
+  }
+  return { ok: true, email, password };
+}
