@@ -1,6 +1,7 @@
 "use server";
 
 import { getDb, isDbConfigured } from "@/db";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { getSessionUserId } from "@/lib/auth/session";
 import {
   markSuggestionViewedRecord,
@@ -27,7 +28,8 @@ export type SaveSuggestionActionResult =
 
 /** 지금 로그인했는지만 알려 준다. (체크인 값은 보내지 않는다 — 로그인하지 않았다면 값이 서버로 가지 않게 하려는 확인용) */
 export async function getLoginStatus(): Promise<boolean> {
-  return (await getSessionUserId()) !== null;
+  // 쿠키가 유효해도 계정이 이미 삭제되었다면(다른 기기에서 삭제 등) 로그인하지 않은 것으로 본다.
+  return (await getCurrentUser()) !== null;
 }
 
 /** 점수 확인 직후 부른다. 오늘 기록을 만들거나 수정한다. */

@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { getDb, isDbConfigured } from "@/db";
+import { deleteAccountRecord } from "@/lib/accounts/delete";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { hashEmail, isEmailHashConfigured } from "@/lib/auth/email-hash";
 import { attemptLogin } from "@/lib/auth/login";
 import { createSession, deleteSession, isSessionConfigured } from "@/lib/auth/session";
@@ -106,6 +108,27 @@ export async function login(_previous: LoginState, formData: FormData): Promise<
 }
 
 export async function logout(): Promise<void> {
+  await deleteSession();
+  redirect("/");
+}
+
+export type DeleteAccountState = undefined | { message: string };
+
+/**
+ * 내 계정과 기록을 모두 삭제한다. 되돌릴 수 없다. (화면에서 한 번 더 확인한 뒤에만 부른다)
+ * 삭제할 계정은 세션에서만 정하며, 화면이 보내는 값은 쓰지 않는다.
+ */
+export async function deleteAccount(): Promise<DeleteAccountState> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  try {
+    const emailHash = isEmailHashConfigured() ? hashEmail(user.email) : null;
+    await deleteAccountRecord(getDb(), { userId: user.id, emailHash });
+  } catch {
+    return { message: "계정을 삭제하지 못했어요. 잠시 후 다시 시도해 주세요." };
+  }
+
   await deleteSession();
   redirect("/");
 }

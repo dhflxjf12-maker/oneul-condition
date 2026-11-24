@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
-import { getSessionUserId } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { buttonClassName } from "./Button";
 
 // Design Ref: §5.1 — 머리글 오른쪽: 로그인했으면 [로그아웃], 아니면 [로그인]·[회원가입].
@@ -8,15 +8,20 @@ import { buttonClassName } from "./Button";
 
 /** 머리글의 로그인 상태 표시 */
 export async function AuthNav() {
-  const userId = await getSessionUserId();
+  const user = await getCurrentUser();
 
-  if (userId) {
+  if (user) {
     return (
-      <form action={logout}>
-        <button type="submit" className={buttonClassName("secondary")}>
-          로그아웃
-        </button>
-      </form>
+      <>
+        <Link href="/account" className={buttonClassName("secondary")}>
+          계정
+        </Link>
+        <form action={logout}>
+          <button type="submit" className={buttonClassName("secondary")}>
+            로그아웃
+          </button>
+        </form>
+      </>
     );
   }
 
