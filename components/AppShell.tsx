@@ -13,7 +13,7 @@ type AppShellProps = {
 /** 모든 화면의 바깥 틀. 본문은 가운데 정렬된 좁은 칸(최대 36rem)에 세로로 쌓는다. */
 export function AppShell({ children, headerAction }: AppShellProps) {
   return (
-    <div className="min-h-dvh bg-gold">
+    <div className="min-h-dvh">
       {/* 키보드 사용자가 머리글을 건너뛰고 본문으로 바로 가는 링크 (포커스를 받을 때만 보임) */}
       <a href="#main" className="skip-link">
         본문으로 건너뛰기

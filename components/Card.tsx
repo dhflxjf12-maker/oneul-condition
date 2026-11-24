@@ -11,7 +11,7 @@ type CardProps = HTMLAttributes<HTMLElement> & {
 export function Card({ as: Tag = "section", className = "", children, ...rest }: CardProps) {
   return (
     <Tag
-      className={`rounded-card bg-card p-5 text-ink shadow-sm sm:p-6 ${className}`}
+      className={`rounded-card bg-card p-5 text-ink shadow-[0_10px_30px_-10px_rgb(92_60_0/0.35)] ring-1 ring-white/70 sm:p-6 ${className}`}
       {...rest}
     >
       {children}

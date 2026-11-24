@@ -34,12 +34,61 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * 배경: 같은 골드 계열 안에서 빛이 번지는 느낌을 겹쳐 깊이를 준다. (글자는 항상 흰 카드 위에만 있어서 대비에는 영향이 없다)
+ * 1) 기본 그라데이션(밝은 크림 골드 → 진한 앰버) 2) 위쪽·옆쪽에서 번지는 빛 3) 아주 옅은 질감(노이즈)
+ */
 body {
-  background: var(--color-gold);
+  background-color: var(--color-gold);
+  background-image:
+    radial-gradient(60rem 38rem at 12% -8%, rgb(255 248 220 / 0.95), transparent 62%),
+    radial-gradient(46rem 36rem at 105% 4%, rgb(255 213 98 / 0.75), transparent 58%),
+    radial-gradient(52rem 40rem at -6% 102%, rgb(196 128 10 / 0.5), transparent 62%),
+    radial-gradient(40rem 30rem at 100% 100%, rgb(255 226 140 / 0.55), transparent 60%),
+    linear-gradient(165deg, #f7d86f 0%, #e9b824 46%, #d19a14 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 1rem; /* 본문 16px 이상 */
   line-height: 1.6;
+}
+
+/* 아주 옅은 질감: 평평한 색이 종이처럼 보이도록 한다. (내용 위가 아니라 맨 뒤에 깔린다) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.05  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* 천천히 일렁이는 빛 한 덩어리 (움직임 줄이기를 쓰면 아래 규칙으로 멈춘다) */
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  width: 70vmax;
+  height: 70vmax;
+  left: -15vmax;
+  top: -25vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 250 228 / 0.55), transparent);
+  filter: blur(30px);
+  animation: glow-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(22vmax, 14vmax, 0) scale(1.15);
+  }
 }
 
 /* 키보드로 이동할 때 어디에 있는지 보이게 한다. (진한 갈색 테두리는 골드·흰색 어디서나 대비 9:1 이상) */
