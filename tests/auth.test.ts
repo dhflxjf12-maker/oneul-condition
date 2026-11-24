@@ -87,13 +87,13 @@ describe("세션 토큰", () => {
 
   it("만든 토큰은 같은 키로 확인하면 계정 번호가 돌아온다", async () => {
     process.env.SESSION_SECRET = "test-secret-test-secret-test-secret-1234";
-    const token = await encryptSession("user-1");
-    expect(await decryptSession(token)).toBe("user-1");
+    const token = await encryptSession({ userId: "user-1", version: 3 });
+    expect(await decryptSession(token)).toEqual({ userId: "user-1", version: 3 });
   });
 
   it("다른 키로 서명했거나 깨진 토큰·빈 값은 거부한다", async () => {
     process.env.SESSION_SECRET = "test-secret-test-secret-test-secret-1234";
-    const token = await encryptSession("user-1");
+    const token = await encryptSession({ userId: "user-1", version: 0 });
     process.env.SESSION_SECRET = "other-secret-other-secret-other-secret-9";
     expect(await decryptSession(token)).toBeNull();
     expect(await decryptSession("abc.def.ghi")).toBeNull();
@@ -102,9 +102,9 @@ describe("세션 토큰", () => {
 
   it("토큰 안에는 이메일 같은 개인 정보가 없다", async () => {
     process.env.SESSION_SECRET = "test-secret-test-secret-test-secret-1234";
-    const token = await encryptSession("user-1");
+    const token = await encryptSession({ userId: "user-1", version: 0 });
     const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
-    expect(Object.keys(payload).sort()).toEqual(["exp", "iat", "userId"]);
+    expect(Object.keys(payload).sort()).toEqual(["exp", "iat", "userId", "v"]);
   });
 });
 

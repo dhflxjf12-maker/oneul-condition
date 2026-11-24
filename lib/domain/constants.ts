@@ -200,6 +200,12 @@ export const REST_ACTIVITY_MAX_MINUTES = 10;
 export const MAX_AI_CALLS_PER_DAY = 20;
 /** 서버가 AI 응답을 기다리는 최대 시간(ms). 화면 기준 5초 안에 끝나도록 4초로 둔다. */
 export const AI_SERVER_TIMEOUT_MS = 4000;
+/** 서비스 전체가 하루에 부를 수 있는 AI 호출 상한 (비용 폭주 방지, 넘으면 모두 기본 문구) */
+export const MAX_AI_CALLS_PER_DAY_GLOBAL = 2000;
+/** IP 하나가 하루에 시도할 수 있는 로그인 횟수 (이메일을 바꿔 가며 대입하는 공격 방지) */
+export const MAX_LOGIN_TRIES_PER_IP_PER_DAY = 60;
+/** IP 하나가 하루에 만들 수 있는 가입 횟수 (가짜 계정 대량 생성 방지) */
+export const MAX_SIGNUPS_PER_IP_PER_DAY = 10;
 /** 화면이 제안을 기다리는 최대 시간(ms). 넘으면 기본 문구로 바꾼다. */
 export const SUGGESTION_UI_TIMEOUT_MS = 5000;
 /** 제안이 화면에 이 시간(ms) 이상 보이면 "표시됨"으로 기록한다 */

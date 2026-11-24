@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Card } from "./Card";
 
@@ -27,6 +28,12 @@ export function AppShell({ children, headerAction }: AppShellProps) {
         <main id="main" tabIndex={-1} className="flex flex-col gap-4 outline-none">
           {children}
         </main>
+
+        <Card as="footer" className="!py-3">
+          <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold text-accent underline">
+            개인정보 처리 안내
+          </Link>
+        </Card>
       </div>
     </div>
   );

@@ -19,8 +19,8 @@ export function getDb(): Db {
   if (globalForDb.__db) return globalForDb.__db;
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL 이 설정되지 않았습니다. .env 에 값을 넣어 주세요.");
-  // 서버리스 환경에서 연결이 넘치지 않게 연결 수를 1로, 연결 풀러와 호환되게 prepare를 끈다.
-  const client = postgres(url, { max: 1, prepare: false });
+  // 서버리스 환경에서 연결이 넘치지 않게 연결 수를 1로, 연결 풀러와 호환되게 prepare를 끈다. 연결은 항상 암호화(SSL)한다.
+  const client = postgres(url, { max: 1, prepare: false, ssl: "require" });
   globalForDb.__db = drizzle(client, { schema });
   return globalForDb.__db;
 }

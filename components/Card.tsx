@@ -4,7 +4,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 type CardProps = HTMLAttributes<HTMLElement> & {
   children: ReactNode;
   /** 어떤 HTML 요소로 그릴지 (기본: section) */
-  as?: "section" | "div" | "header" | "aside";
+  as?: "section" | "div" | "header" | "footer" | "aside";
 };
 
 /** 흰색 카드 한 장. 모서리 16px, 안쪽 여백 20px(넓은 화면 24px). */

@@ -9,7 +9,7 @@ import type { SignupInput } from "./validation";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 서버(postgres-js)와 테스트(pglite) 모두 받기 위해
 type AnyPgDb = PgDatabase<any, any>;
 
-export type SignupResult = { status: "created"; userId: string } | { status: "duplicate" };
+export type SignupResult = { status: "created"; userId: string; sessionVersion: number } | { status: "duplicate" };
 
 /** 계정을 만든다. 비밀번호는 해시로만 저장한다. */
 export async function createUser(db: AnyPgDb, input: SignupInput, now: Date = new Date()): Promise<SignupResult> {
@@ -25,7 +25,7 @@ export async function createUser(db: AnyPgDb, input: SignupInput, now: Date = ne
       ageConfirmed: input.ageConfirmed,
     })
     .onConflictDoNothing({ target: users.email })
-    .returning({ id: users.id });
+    .returning({ id: users.id, sessionVersion: users.sessionVersion });
 
-  return rows.length === 0 ? { status: "duplicate" } : { status: "created", userId: rows[0].id };
+  return rows.length === 0 ? { status: "duplicate" } : { status: "created", userId: rows[0].id, sessionVersion: rows[0].sessionVersion };
 }

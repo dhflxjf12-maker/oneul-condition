@@ -17,7 +17,7 @@ import { hashPassword, verifyPassword } from "./password";
 type AnyPgDb = PgDatabase<any, any>;
 
 export type LoginResult =
-  | { status: "success"; userId: string }
+  | { status: "success"; userId: string; sessionVersion: number }
   | { status: "invalid" }
   | { status: "locked"; remainingSeconds: number };
 
@@ -54,13 +54,13 @@ export async function attemptLogin(
   }
 
   // 2) 비밀번호 확인 (가입하지 않은 이메일도 같은 만큼 시간을 쓴다)
-  const [user] = await db.select({ id: users.id, passwordHash: users.passwordHash }).from(users).where(eq(users.email, email));
+  const [user] = await db.select({ id: users.id, passwordHash: users.passwordHash, sessionVersion: users.sessionVersion }).from(users).where(eq(users.email, email));
   const matched = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
 
   if (user && matched) {
     // 성공: 실패 기록을 지운다.
     await db.delete(loginAttempts).where(eq(loginAttempts.emailHash, emailHash));
-    return { status: "success", userId: user.id };
+    return { status: "success", userId: user.id, sessionVersion: user.sessionVersion };
   }
 
   // 3) 실패: 횟수를 올린다. 잠금이 풀린 뒤이거나 마지막 실패로부터 24시간이 지났으면 1부터 다시 센다.

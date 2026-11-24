@@ -30,6 +30,8 @@ export const users = pgTable(
     level: text("level").$type<ExerciseLevel>().notNull().default("hobby"),
     healthConsentAt: timestamp("health_consent_at", { withTimezone: true }).notNull(),
     ageConfirmed: boolean("age_confirmed").notNull(),
+    /** 올리면 이전에 발급된 모든 로그인(세션)이 무효가 된다. (로그아웃·관리자 비밀번호 초기화 때) */
+    sessionVersion: integer("session_version").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex("users_email_key").on(table.email)],

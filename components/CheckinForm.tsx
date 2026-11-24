@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getBrowserStorage, loadDraft, loadLevel, saveDraft, saveLevel } from "@/lib/checkin-storage";
 import {
@@ -278,6 +279,10 @@ export function CheckinForm({ onComplete }: CheckinFormProps) {
         <Button type="submit" className="w-full">
           점수 보기
         </Button>
+        <p className="mt-3 text-sm text-ink-sub">
+          제안 문장을 만들기 위해 체크인 값(숫자 선택값)만 미국의 AI 서비스(Anthropic)로 보내요. 이메일 등 누구인지 알 수 있는 정보는 보내지
+          않아요. <Link href="/privacy" className="font-semibold text-accent underline">개인정보 처리 안내</Link>
+        </p>
       </Card>
     </form>
   );

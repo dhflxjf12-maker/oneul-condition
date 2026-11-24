@@ -2,7 +2,6 @@
 
 import { getDb, isDbConfigured } from "@/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { getSessionUserId } from "@/lib/auth/session";
 import {
   markSuggestionViewedRecord,
   markViewedSchema,
@@ -34,7 +33,7 @@ export async function getLoginStatus(): Promise<boolean> {
 
 /** 점수 확인 직후 부른다. 오늘 기록을 만들거나 수정한다. */
 export async function saveCheckin(payload: unknown): Promise<SaveCheckinActionResult> {
-  const userId = await getSessionUserId();
+  const userId = (await getCurrentUser())?.id;
   if (!userId) return { ok: false, code: "UNAUTHORIZED" };
 
   const parsed = saveCheckinSchema.safeParse(payload);
@@ -57,7 +56,7 @@ export async function saveCheckin(payload: unknown): Promise<SaveCheckinActionRe
 
 /** saveCheckin이 끝난 뒤, 제안이 도착하면 부른다. */
 export async function saveSuggestion(payload: unknown): Promise<SaveSuggestionActionResult> {
-  const userId = await getSessionUserId();
+  const userId = (await getCurrentUser())?.id;
   if (!userId) return { ok: false, code: "UNAUTHORIZED" };
 
   const parsed = saveSuggestionSchema.safeParse(payload);
@@ -79,7 +78,7 @@ export type SaveFeedbackActionResult =
 
 /** 👍/👎 평가를 내 오늘 기록에 저장한다. */
 export async function saveFeedback(payload: unknown): Promise<SaveFeedbackActionResult> {
-  const userId = await getSessionUserId();
+  const userId = (await getCurrentUser())?.id;
   if (!userId) return { ok: false, code: "UNAUTHORIZED" };
 
   const parsed = saveFeedbackSchema.safeParse(payload);
@@ -100,7 +99,7 @@ export type MarkViewedActionResult =
 
 /** 제안이 3초 이상 표시되었음을 기록한다. (지표 측정용 이용 기록, 실패해도 사용자에게 알리지 않는다) */
 export async function markSuggestionViewed(payload: unknown): Promise<MarkViewedActionResult> {
-  const userId = await getSessionUserId();
+  const userId = (await getCurrentUser())?.id;
   if (!userId) return { ok: false, code: "UNAUTHORIZED" };
 
   const parsed = markViewedSchema.safeParse(payload);
@@ -120,7 +119,7 @@ export async function markSuggestionViewed(payload: unknown): Promise<MarkViewed
  * 보여 주기로 한 순간 "물어봤다"고 기록하므로, 같은 주에는 다시 묻지 않는다.
  */
 export async function getWeeklySurvey(): Promise<{ weekStart: string } | null> {
-  const userId = await getSessionUserId();
+  const userId = (await getCurrentUser())?.id;
   if (!userId || !isDbConfigured()) return null;
   try {
     return await getDueSurvey(getDb(), userId);
@@ -136,7 +135,7 @@ export type SaveSurveyActionResult =
 
 /** "맞았다/아니다" 응답을 저장한다. */
 export async function saveSurvey(payload: unknown): Promise<SaveSurveyActionResult> {
-  const userId = await getSessionUserId();
+  const userId = (await getCurrentUser())?.id;
   if (!userId) return { ok: false, code: "UNAUTHORIZED" };
 
   const parsed = saveSurveySchema.safeParse(payload);
