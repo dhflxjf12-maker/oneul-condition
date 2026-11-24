@@ -328,7 +328,7 @@
 
 1. 사용자가 **가입한 이메일 주소로** 관리자에게 요청을 보낸다.
 2. 관리자는 보낸 주소가 가입 이메일과 같은지 확인한다.
-3. 로컬에서 `scripts/reset-password.ts`(작업 22에서 만든다)를 실행한다. 이 스크립트는 `.env`의 `DATABASE_URL`만 읽고, 무작위 임시 비밀번호(16자)를 만들어 해시로 바꿔 저장한다. 임시 비밀번호는 화면에 한 번만 보여 주고 로그·채팅에 남기지 않는다.
+3. 로컬에서 `npm run admin:reset-password -- 가입이메일@example.com` 을 실행한다. (`scripts/reset-password.mjs`) 이 스크립트는 `.env`의 `DATABASE_URL`(과 있으면 `EMAIL_HASH_SECRET`)만 읽고, 무작위 임시 비밀번호(16자)를 만들어 서버와 같은 방식(SHA-256 → bcrypt)으로 해시해 저장한다. 같은 때 기존 로그인을 모두 끊고(`session_version + 1`) 그 이메일의 로그인 잠금도 푼다. 임시 비밀번호는 화면에 한 번만 보여 주고 로그·채팅에 남기지 않는다.
 4. 임시 비밀번호를 가입 이메일로 전달한다.
 
 > **한계:** 비밀번호 변경 화면이 비범위(프로필 편집 제외)라서 사용자는 임시 비밀번호를 계속 쓰게 된다. 다음 버전에서 "비밀번호 변경" 기능을 넣는 것이 좋다.
@@ -619,7 +619,7 @@ lib/
   server/  db.ts, schema.ts, session.ts, auth.ts, ai.ts, rate-limit.ts
   validation.ts                              Zod 검사 모음
 tests/                                       단위 테스트
-scripts/                                     reset-password.ts (관리자 비밀번호 초기화, 작업 22)
+scripts/                                     migrate.mjs, reset-password.mjs (관리자 비밀번호 초기화, 작업 22)
 ```
 
 ---
